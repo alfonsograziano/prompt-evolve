@@ -97,8 +97,6 @@ Categorize the differences into these areas:
 7. **Anything else**: Anything else that is different between the two outputs
 
 Provide a detailed analysis in this format:
-Current output: [current output]
-Ideal output: [ideal output]
 Key differences:
 - [Category 1]: [specific difference]
 - [Category 2]: [specific difference]
@@ -135,39 +133,61 @@ async function evolvePrompt({
   variables: VariableDef[];
   history: HistoryEntry[];
 }): Promise<string> {
-  // Build conversation history from previous iterations
   const messages: Array<{
     role: "system" | "user" | "assistant";
     content: string;
-  }> = [
-    {
-      role: "system",
-      content:
-        "You are an expert prompt engineer. Your task is to improve prompt templates to better match desired outputs.",
-    },
-  ];
+  }> = [];
 
-  // Add history of previous iterations as context
-  for (const entry of history) {
+  messages.push({
+    role: "system",
+    content: `
+You are **Prompt-Evolve**, an elite prompt-engineering agent.
+
+Goal → Produce a *new* prompt template that, when rendered with the same variables, will drive the LLM's output as close as possible to the IDEAL output.
+
+Success rubric:
+1. All variable placeholders \${var} must be preserved and used meaningfully.
+2. Include clear meta-instructions to guide the LLM's output format, style, and approach.
+3. Make the prompt generic enough to work with different variable values.
+4. Focus on providing context and guidance rather than being overly prescriptive.
+5. Respond **ONLY** with the new prompt template, don't add comments or anything else.
+
+Remember:
+- Meta-instructions like "Write in a [style]" or "Format as [format]" are encouraged
+- The prompt should work well for any valid values of the variables
+- Variables can be used multiple times if it helps create better context
+- Include structural guidance (bullet points, sections, etc.) when relevant
+`.trim(),
+  });
+
+  // Add the last 7 iterations to the messages
+  const recentHistory = history.slice(-7);
+  for (const h of recentHistory) {
     messages.push({
       role: "user",
-      content: `Iteration ${entry.iteration}:\nPrompt: ${entry.prompt}\nOutput: ${entry.output}\nDifference Analysis: ${entry.difference}`,
+      content: `History-${h.iteration}:Prompt: ${h.prompt}\nOutput: ${h.output}\nDifference Analysis: ${h.difference}`,
     });
     messages.push({
       role: "assistant",
-      content: `Based on the analysis, I evolved the prompt to: ${entry.optimizedPrompt}`,
+      content: `Based on the analysis, I evolved the prompt to: ${h.optimizedPrompt}`,
     });
   }
 
-  // Add current iteration request
-  const currentRequest = `
+  const variableBlock = variables
+    .map(
+      (v) =>
+        `• **${v.name}** – ${v.description}\n  ↳ e.g. "${v.example
+          .replace(/\n/g, " ")
+          .slice(0, 120)}"`
+    )
+    .join("\n");
+
+  const userPrompt = `
 ### Current Prompt Template
 ${currentPrompt}
 
 ### Variables
-${variables
-  .map((v) => `- ${v.name}: ${v.description} (e.g., "${v.example}")`)
-  .join("\n")}
+${variableBlock}
 
 ### Current Output
 ${currentOutput}
@@ -178,12 +198,13 @@ ${idealOutput}
 ### Difference Analysis
 ${differenceExplanation}
 
-Output ONLY the new prompt template, using \${variableName} syntax.`;
+🛠 **Task**  
+Update the template so that, when rendered with the SAME variable values, it will likely produce the IDEAL output.
+When you return the new template, keep in mind all the differences that were found durig the Difference analysis from the system. Use them as a guide to improve the prompt. Try to buid a prompt that removes the differences.
+Return **only** the new, updated template, as specified in the system prompt.
+`.trim();
 
-  messages.push({
-    role: "user",
-    content: currentRequest,
-  });
+  messages.push({ role: "user", content: userPrompt });
 
   const evolved = await callLLM("gpt-4o-mini", messages);
   return evolved.trim();
