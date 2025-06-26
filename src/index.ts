@@ -203,6 +203,43 @@ async function callLLM(
   return completion.choices[0]?.message?.content ?? "";
 }
 
+// ---- 5. Telemetry Saver ----
+async function saveTelemetryData(
+  telemetryFilePath: string,
+  telemetryData: TelemetryIteration[],
+  metadata: {
+    initialPromptTemplate: string;
+    variables: VariableDef[];
+    idealOutput: string;
+    model: string;
+    maxIterations: number;
+    finalPromptTemplate?: string;
+    finalOutput?: string;
+    history: HistoryEntry[];
+    startedAt: Date;
+  }
+) {
+  const telemetryObj = {
+    initialPromptTemplate: metadata.initialPromptTemplate,
+    variables: metadata.variables,
+    idealOutput: metadata.idealOutput,
+    model: metadata.model,
+    maxIterations: metadata.maxIterations,
+    iterations: telemetryData,
+    finalPromptTemplate: metadata.finalPromptTemplate,
+    finalOutput: metadata.finalOutput,
+    history: metadata.history,
+    startedAt: metadata.startedAt.toISOString(),
+    finishedAt: new Date().toISOString(),
+    totalDurationMs: Date.now() - metadata.startedAt.getTime(),
+  };
+  await fs.writeFile(
+    path.resolve(telemetryFilePath),
+    JSON.stringify(telemetryObj, null, 2),
+    "utf-8"
+  );
+}
+
 // ---- 6. Main Loop ----
 export async function promptEvolve({
   initialPromptTemplate,
@@ -298,31 +335,40 @@ export async function promptEvolve({
       difference,
       optimizedPrompt: evolvedPrompt,
     });
+
+    // Save telemetry after each iteration if telemetry is enabled
+    // So that we can see the progress of the prompt evolution
+    // And in case of early stopping of the script, or error, we can still have the partial telemetry data
+    if (telemetry?.filePath) {
+      await saveTelemetryData(telemetry.filePath, telemetryData, {
+        initialPromptTemplate,
+        variables,
+        idealOutput,
+        model,
+        maxIterations,
+        finalPromptTemplate: evolvedPrompt,
+        finalOutput: nextTaskOutput,
+        history,
+        startedAt,
+      });
+    }
+
     currentPrompt = evolvedPrompt!;
     currentOutput = nextTaskOutput;
   }
 
-  const totalEnd = Date.now();
   if (telemetry?.filePath) {
-    const telemetryObj = {
+    await saveTelemetryData(telemetry.filePath, telemetryData, {
       initialPromptTemplate,
       variables,
       idealOutput,
       model,
       maxIterations,
-      iterations: telemetryData,
       finalPromptTemplate: currentPrompt,
       finalOutput: currentOutput,
       history,
-      startedAt: startedAt.toISOString(),
-      finishedAt: new Date(totalEnd).toISOString(),
-      totalDurationMs: totalEnd - totalStart,
-    };
-    await fs.writeFile(
-      path.resolve(telemetry.filePath),
-      JSON.stringify(telemetryObj, null, 2),
-      "utf-8"
-    );
+      startedAt,
+    });
     console.log(`\nTelemetry saved to: ${path.resolve(telemetry.filePath)}`);
   }
 
