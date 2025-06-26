@@ -13,6 +13,7 @@ interface HistoryEntry {
   iteration: number;
   prompt: string;
   output: string;
+  optimizedPrompt: string;
   difference: string;
 }
 
@@ -49,6 +50,23 @@ function renderPrompt(
   variables: Record<string, string>
 ): string {
   return template.replace(/\$\{(\w+)\}/g, (_, v) => variables[v] ?? "");
+}
+
+// Helper function to build a simple prompt message array
+async function buildSinglePrompt(
+  prompt: string,
+  systemMessage: string = "You are a helpful assistant."
+): Promise<Array<{ role: "system" | "user" | "assistant"; content: string }>> {
+  return [
+    {
+      role: "system",
+      content: systemMessage,
+    },
+    {
+      role: "user",
+      content: prompt,
+    },
+  ];
 }
 
 // ---- 2. Evaluator ----
@@ -88,7 +106,11 @@ Key differences:
 ...`;
 
   try {
-    const analysis = await callLLM("gpt-4o-mini", analysisPrompt);
+    const messages = await buildSinglePrompt(
+      analysisPrompt,
+      "You are an expert prompt evaluator."
+    );
+    const analysis = await callLLM("gpt-4o-mini", messages);
     return analysis.trim();
   } catch (error) {
     // Fallback to simple diff if LLM call fails
@@ -113,10 +135,33 @@ async function evolvePrompt({
   variables: VariableDef[];
   history: HistoryEntry[];
 }): Promise<string> {
-  const evolutionPrompt = `
-You are a prompt engineer. Given a current prompt, a set of variable definitions, the LLM output, and the IDEAL output, improve the prompt template to better match the desired result.
+  // Build conversation history from previous iterations
+  const messages: Array<{
+    role: "system" | "user" | "assistant";
+    content: string;
+  }> = [
+    {
+      role: "system",
+      content:
+        "You are an expert prompt engineer. Your task is to improve prompt templates to better match desired outputs.",
+    },
+  ];
 
-### Prompt Template
+  // Add history of previous iterations as context
+  for (const entry of history) {
+    messages.push({
+      role: "user",
+      content: `Iteration ${entry.iteration}:\nPrompt: ${entry.prompt}\nOutput: ${entry.output}\nDifference Analysis: ${entry.difference}`,
+    });
+    messages.push({
+      role: "assistant",
+      content: `Based on the analysis, I evolved the prompt to: ${entry.optimizedPrompt}`,
+    });
+  }
+
+  // Add current iteration request
+  const currentRequest = `
+### Current Prompt Template
 ${currentPrompt}
 
 ### Variables
@@ -130,27 +175,30 @@ ${currentOutput}
 ### Ideal Output
 ${idealOutput}
 
-### Difference
+### Difference Analysis
 ${differenceExplanation}
 
 Output ONLY the new prompt template, using \${variableName} syntax.`;
-  const evolved = await callLLM("gpt-4o-mini", evolutionPrompt);
+
+  messages.push({
+    role: "user",
+    content: currentRequest,
+  });
+
+  const evolved = await callLLM("gpt-4o-mini", messages);
   return evolved.trim();
 }
 
 // ---- 4. LLM Executor ----
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-async function callLLM(model: string, prompt: string): Promise<string> {
+async function callLLM(
+  model: string,
+  messages: Array<{ role: "system" | "user" | "assistant"; content: string }>
+): Promise<string> {
   const completion = await openai.chat.completions.create({
     model,
-    messages: [
-      {
-        role: "system",
-        content: "You are a helpful assistant.",
-      },
-      { role: "user", content: prompt },
-    ],
+    messages,
   });
   return completion.choices[0]?.message?.content ?? "";
 }
@@ -200,7 +248,10 @@ export async function promptEvolve({
       // Use provided currentOutput for the first iteration if given
       taskOutput = currentOutput;
     } else {
-      taskOutput = await callLLM(model, renderedPrompt);
+      taskOutput = await callLLM(
+        model,
+        await buildSinglePrompt(renderedPrompt)
+      );
     }
 
     // Evaluate difference
@@ -222,7 +273,10 @@ export async function promptEvolve({
 
     // Get the LLM output for the evolved prompt (for next iteration)
     const nextRenderedPrompt = renderPrompt(evolvedPrompt!, filledVars);
-    const nextTaskOutput = await callLLM(model, nextRenderedPrompt);
+    const nextTaskOutput = await callLLM(
+      model,
+      await buildSinglePrompt(nextRenderedPrompt)
+    );
 
     const iterEnd = Date.now();
     telemetryData.push({
@@ -232,7 +286,7 @@ export async function promptEvolve({
       durationMs: iterEnd - iterStart,
       prompt: currentPrompt,
       renderedPrompt,
-      output: taskOutput, // <-- This is now always the actual LLM output for the prompt
+      output: taskOutput,
       difference,
       evolvedPrompt,
       promptEvolutionDurationMs,
@@ -240,8 +294,9 @@ export async function promptEvolve({
     history.push({
       iteration: i,
       prompt: currentPrompt,
-      output: taskOutput, // <-- This is now always the actual LLM output for the prompt
+      output: taskOutput,
       difference,
+      optimizedPrompt: evolvedPrompt,
     });
     currentPrompt = evolvedPrompt!;
     currentOutput = nextTaskOutput;
