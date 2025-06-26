@@ -1,0 +1,41 @@
+{
+  "initialPromptTemplate": "You're a senior content strategist writing for a well-known tech company. Your task is to write a strong, engaging **blog post introduction** based on the following details:\n\nCompany: ${companyName}\nProduct: ${productName}\nTarget Audience: ${audience}\nTone: ${tone}\nMain Topic: ${mainTopic}\nKey Message: ${keyMessage}\n\nYour writing should:\n- Hook the reader in the first sentence\n- Establish the relevance of the topic to the audience\n- Match the brand's tone of voice (e.g. ${tone})\n- Lead naturally into the rest of the article\n\nOnly output the blog post introduction (150-200 words). Do not include a title.",
+  "variables": [
+    {
+      "name": "companyName",
+      "description": "The name of the company publishing the blog post",
+      "example": "NeoCloud Technologies"
+    },
+    {
+      "name": "productName",
+      "description": "The featured product or solution being written about",
+      "example": "NeoCloud EdgeSync"
+    },
+    {
+      "name": "audience",
+      "description": "The specific professional audience this article is targeting",
+      "example": "DevOps engineers in large enterprises"
+    },
+    {
+      "name": "tone",
+      "description": "The brand’s tone of voice for content marketing",
+      "example": "confident, technical, future-facing"
+    },
+    {
+      "name": "mainTopic",
+      "description": "The core topic or angle of the blog post",
+      "example": "why edge computing is transforming real-time system design"
+    },
+    {
+      "name": "keyMessage",
+      "description": "The most important takeaway or insight to communicate in the intro",
+      "example": "EdgeSync brings near-zero latency and centralized control to edge networks without sacrificing security or observability."
+    }
+  ],
+  "idealOutput": "DevOps teams are no longer confined to cloud data centers. In industries like manufacturing, logistics, and healthcare, real-time decision-making at the edge has become the new standard. But with opportunity comes complexity. NeoCloud EdgeSync was built to eliminate that friction. With centralized orchestration and zero-latency pipelines, EdgeSync enables your infrastructure to think and act instantly — without compromising security or observability. In this article, we'll explore how edge computing is reshaping system design — and how your team can stay ahead of the curve.",
+  "model": "gpt-4o-mini",
+  "maxIterations": 5,
+  "telemetry": {
+    "filePath": "telemetry-complex.json"
+  }
+}

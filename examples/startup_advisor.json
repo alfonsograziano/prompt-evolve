@@ -1,0 +1,31 @@
+{
+  "initialPromptTemplate": "You're a startup mentor. Write a short elevator pitch (2-3 sentences) for a startup based on the following:\n- Idea: ${idea}\n- Target Audience: ${targetAudience}\n- Unique Value Proposition: ${uniqueValue}\n- Market Trend: ${marketTrend}",
+  "variables": [
+    {
+      "name": "idea",
+      "description": "The core concept or product idea for the startup",
+      "example": "A smart water bottle that tracks hydration and syncs with fitness apps"
+    },
+    {
+      "name": "targetAudience",
+      "description": "Who the product is for",
+      "example": "Busy professionals and fitness enthusiasts"
+    },
+    {
+      "name": "uniqueValue",
+      "description": "What makes this idea unique or valuable",
+      "example": "Real-time hydration feedback and personalized reminders based on weather, activity, and health goals"
+    },
+    {
+      "name": "marketTrend",
+      "description": "A relevant current trend in the market that supports this idea",
+      "example": "Rising demand for personalized health and wellness tech"
+    }
+  ],
+  "idealOutput": "Meet HydraSync: the smart water bottle for professionals and athletes. It monitors your hydration levels in real time and gives personalized reminders based on your goals and lifestyle — all synced with your favorite fitness apps.",
+  "model": "gpt-4o-mini",
+  "maxIterations": 5,
+  "telemetry": {
+    "filePath": "telemetry-multivars.json"
+  }
+}

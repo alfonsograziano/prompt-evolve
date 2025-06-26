@@ -1,0 +1,22 @@
+{
+  "name": "prompt-evolve",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "tsx --env-file .env src/index.ts",
+    "run-from-examples": "tsx --env-file .env src/run-from-examples.ts",
+    "run-from-file": "tsx --env-file .env src/run-from-file.ts"
+  },
+  "author": "Alfonso Graziano",
+  "license": "MIT",
+  "description": "A tool to automatically improve and evolve LLM (Large Language Model) prompts to better match desired outputs.",
+  "devDependencies": {
+    "@types/node": "^24.0.4",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "openai": "^5.8.1",
+    "zod": "^3.25.67"
+  }
+}

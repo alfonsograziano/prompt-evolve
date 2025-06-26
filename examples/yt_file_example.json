@@ -1,0 +1,16 @@
+{
+  "initialPromptTemplate": "\n  Please generate a short, actionable title for this YouTube video transcript:\n  ${transcript}\n  ",
+  "variables": [
+    {
+      "name": "transcript",
+      "description": "The full transcript of a YouTube video about productivity hacks",
+      "example": "So in today's video, I want to talk about how waking up earlier helped me reclaim my time.\n  At first, it was tough. I’d hit snooze and feel exhausted.\n  But then I started using a consistent bedtime and a light alarm clock.\n  Within a week, I was waking up at 6AM, and I had a whole extra hour to journal, exercise, and plan my day.\n  That single change—getting up before the world does—transformed how I show up in my job and my life."
+    }
+  ],
+  "idealOutput": "Waking Up at 6AM Changed My Life",
+  "model": "gpt-4o-mini",
+  "maxIterations": 5,
+  "telemetry": {
+    "filePath": "telemetry.json"
+  }
+}
