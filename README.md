@@ -9,7 +9,7 @@ Prompt-evolve is a tool designed to automatically improve and evolve LLM (Large 
 - 📊 Detailed telemetry and iteration tracking
 - 🔍 Automatic difference evaluation between current and ideal outputs
 - 📈 Progress monitoring and logging
-- 💾 Telemetry data export
+- 💾 Telemetry data export (JSON or beautiful HTML report)
 
 ## Installation
 
@@ -59,6 +59,17 @@ const result = await promptEvolve({
 });
 ```
 
+#### Enabling the HTML Reporter
+
+To generate a beautiful, interactive HTML report of the prompt evolution process, set the `reporterType` to `"html"` in the telemetry options:
+
+```typescript
+telemetry: {
+  filePath: "telemetry.html",
+  reporterType: "html",
+},
+```
+
 ### 2. Running from Examples
 
 ```bash
@@ -80,7 +91,7 @@ The `promptEvolve` function accepts the following parameters:
 - `idealOutput`: The target output you want to achieve
 - `model`: The OpenAI model to use (e.g., "gpt-4")
 - `maxIterations`: Maximum number of evolution iterations
-- `telemetry`: Optional telemetry configuration
+- `telemetry`: Optional telemetry configuration (set `reporterType` to `"html"` for HTML report)
 - `currentOutput`: Optional initial output to start with
 
 ## How It Works
@@ -99,7 +110,7 @@ The system returns:
 - `finalOutput`: The last output generated
 - `history`: Complete evolution history
 
-If telemetry is enabled, it also saves detailed iteration data to the specified file.
+If telemetry is enabled, it also saves detailed iteration data to the specified file. If you use `reporterType: "html"`, the output will be a visually rich HTML report.
 
 ## Requirements
 

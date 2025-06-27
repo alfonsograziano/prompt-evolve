@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { promises as fs } from "fs";
 import path from "path";
+import { generateHTML } from "./reporters/htmlReporter";
 
 // ---- Types ----
 interface VariableDef {
@@ -19,6 +20,7 @@ interface HistoryEntry {
 
 interface TelemetryOptions {
   filePath: string;
+  reporterType: "json" | "html";
 }
 
 interface TelemetryIteration {
@@ -238,7 +240,8 @@ async function saveTelemetryData(
     finalOutput?: string;
     history: HistoryEntry[];
     startedAt: Date;
-  }
+  },
+  reporterType: "json" | "html" = "json"
 ) {
   const telemetryObj = {
     initialPromptTemplate: metadata.initialPromptTemplate,
@@ -254,11 +257,17 @@ async function saveTelemetryData(
     finishedAt: new Date().toISOString(),
     totalDurationMs: Date.now() - metadata.startedAt.getTime(),
   };
-  await fs.writeFile(
-    path.resolve(telemetryFilePath),
-    JSON.stringify(telemetryObj, null, 2),
-    "utf-8"
-  );
+  if (reporterType === "json") {
+    await fs.writeFile(
+      path.resolve(telemetryFilePath),
+      JSON.stringify(telemetryObj, null, 2),
+      "utf-8"
+    );
+  }
+  if (reporterType === "html") {
+    const html = await generateHTML(telemetryObj, telemetryFilePath);
+    await fs.writeFile(path.resolve(telemetryFilePath), html, "utf-8");
+  }
 }
 
 // ---- 6. Main Loop ----
@@ -271,6 +280,11 @@ export async function promptEvolve({
   telemetry,
   currentOutput: initialCurrentOutput,
 }: PromptEvolveArgs) {
+  if (telemetry && !telemetry.reporterType) {
+    throw new Error(
+      'If telemetry is provided, reporterType is mandatory ("json" or "html")'
+    );
+  }
   let currentPrompt = initialPromptTemplate;
   let currentOutput = initialCurrentOutput ?? "";
   let history: HistoryEntry[] = [];
@@ -358,20 +372,23 @@ export async function promptEvolve({
     });
 
     // Save telemetry after each iteration if telemetry is enabled
-    // So that we can see the progress of the prompt evolution
-    // And in case of early stopping of the script, or error, we can still have the partial telemetry data
     if (telemetry?.filePath) {
-      await saveTelemetryData(telemetry.filePath, telemetryData, {
-        initialPromptTemplate,
-        variables,
-        idealOutput,
-        model,
-        maxIterations,
-        finalPromptTemplate: evolvedPrompt,
-        finalOutput: nextTaskOutput,
-        history,
-        startedAt,
-      });
+      await saveTelemetryData(
+        telemetry.filePath,
+        telemetryData,
+        {
+          initialPromptTemplate,
+          variables,
+          idealOutput,
+          model,
+          maxIterations,
+          finalPromptTemplate: evolvedPrompt,
+          finalOutput: nextTaskOutput,
+          history,
+          startedAt,
+        },
+        telemetry.reporterType
+      );
     }
 
     currentPrompt = evolvedPrompt!;
@@ -379,18 +396,27 @@ export async function promptEvolve({
   }
 
   if (telemetry?.filePath) {
-    await saveTelemetryData(telemetry.filePath, telemetryData, {
-      initialPromptTemplate,
-      variables,
-      idealOutput,
-      model,
-      maxIterations,
-      finalPromptTemplate: currentPrompt,
-      finalOutput: currentOutput,
-      history,
-      startedAt,
-    });
-    console.log(`\nTelemetry saved to: ${path.resolve(telemetry.filePath)}`);
+    await saveTelemetryData(
+      telemetry.filePath,
+      telemetryData,
+      {
+        initialPromptTemplate,
+        variables,
+        idealOutput,
+        model,
+        maxIterations,
+        finalPromptTemplate: currentPrompt,
+        finalOutput: currentOutput,
+        history,
+        startedAt,
+      },
+      telemetry.reporterType
+    );
+    console.log(
+      `\nTelemetry saved to: ${path.resolve(
+        telemetry.filePath
+      )} with reporter type: ${telemetry.reporterType}`
+    );
   }
 
   console.log("\n--- Prompt Evolve Finished ---");

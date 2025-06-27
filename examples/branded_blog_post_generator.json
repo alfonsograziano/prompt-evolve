@@ -36,6 +36,7 @@
   "model": "gpt-4o-mini",
   "maxIterations": 5,
   "telemetry": {
-    "filePath": "telemetry-complex.json"
+    "filePath": "telemetry-complex.json",
+    "reporterType": "json"
   }
 }

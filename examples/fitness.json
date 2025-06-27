@@ -26,6 +26,7 @@
   "model": "gpt-4o-mini",
   "maxIterations": 5,
   "telemetry": {
-    "filePath": "telemetry-workout.json"
+    "filePath": "telemetry-workout.json",
+    "reporterType": "json"
   }
 }
