@@ -1,0 +1,31 @@
+{
+  "initialPromptTemplate": "You’re a certified fitness coach. Create a complete 7-day workout plan based on the following inputs:\n\nClient Goal: ${goal}\nExperience Level: ${level}\nAvailable Equipment: ${equipment}\nSession Duration: ${duration}.",
+  "variables": [
+    {
+      "name": "goal",
+      "description": "Primary fitness objective",
+      "example": "Build lean muscle and improve overall strength"
+    },
+    {
+      "name": "level",
+      "description": "Client’s training experience",
+      "example": "Intermediate"
+    },
+    {
+      "name": "equipment",
+      "description": "Available gym or home workout gear",
+      "example": "Dumbbells, barbell, pull-up bar, resistance bands"
+    },
+    {
+      "name": "duration",
+      "description": "Desired session length",
+      "example": "60 minutes"
+    }
+  ],
+  "idealOutput": "Day 1: Upper Body Push\n\n**Warm-up (10 min):**\n- Arm Circles: 2×15 each direction\n- Band Pull-Apart: 3×15\n- Wall Slides: 2×12\n\n**Main Workout (45 min):**\n1. Barbell Bench Press: 4×8 (90s rest)\n2. Dumbbell Incline Press: 3×10 (60s rest)\n3. Overhead Press: 3×8 (90s rest)\n4. Tricep Dips: 3×12 (60s rest)\n5. Push-up Hold: 3×30s\n\n**Cool-down (5 min):**\n- Chest Stretch: 2×30s\n- Tricep Stretch: 2×30s\n\n> *Tip:* Keep your elbows tucked at ~45° on bench press to protect shoulders.\n\n---\n\nDay 2: Lower Body Strength\n\n**Warm-up (10 min):**\n- Leg Swings: 2×15 each leg\n- Bodyweight Squats: 2×20\n- Hip Circles: 2×10 each direction\n\n**Main Workout (45 min):**\n1. Back Squat: 4×6 (120s rest)\n2. Romanian Deadlift: 3×8 (90s rest)\n3. Walking Lunges: 3×12 each leg (60s rest)\n4. Goblet Squat: 3×10 (60s rest)\n5. Calf Raises: 4×15 (45s rest)\n\n**Cool-down (5 min):**\n- Hamstring Stretch: 2×30s each leg\n- Quad Stretch: 2×30s each leg\n\n> *Tip:* Drive through your heels and keep chest up on squats.\n\n---\n\n*(…and so on for Days 3–7, covering pull, full-body, HIIT, mobility, and active rest.)*",
+  "model": "gpt-4o-mini",
+  "maxIterations": 5,
+  "telemetry": {
+    "filePath": "telemetry-workout.json"
+  }
+}
