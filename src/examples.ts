@@ -29,6 +29,7 @@ const examples = [
       maxIterations: 5,
       telemetry: {
         filePath: "telemetry.json",
+        reporterType: "json",
       },
     },
   },
@@ -93,6 +94,7 @@ const examples = [
       maxIterations: 5,
       telemetry: {
         filePath: "telemetry_markdown_faq.json",
+        reporterType: "json",
       },
     },
   },

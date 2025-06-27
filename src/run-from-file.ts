@@ -18,6 +18,7 @@ const PromptEvolveArgsSchema = z.object({
   telemetry: z
     .object({
       filePath: z.string(),
+      reporterType: z.enum(["json", "html"]),
     })
     .optional(),
   currentOutput: z.string().optional(),

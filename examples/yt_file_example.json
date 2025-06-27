@@ -9,9 +9,9 @@
   ],
   "idealOutput": "Waking Up at 6AM Changed My Life",
   "model": "gpt-4o-mini",
-  "maxIterations": 5,
+  "maxIterations": 1,
   "telemetry": {
-    "filePath": "telemetry.json",
-    "reporterType": "json"
+    "filePath": "telemetry-yt.html",
+    "reporterType": "html"
   }
 }
