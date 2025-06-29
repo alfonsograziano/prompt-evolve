@@ -1,4 +1,5 @@
 import { OpenAI } from "openai";
+import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 
 // ---- Types ----
 export interface VariableDef {
@@ -61,6 +62,7 @@ export interface LLMResponse {
   startTime: number;
   endTime: number;
   rawOutput: OpenAI.Chat.Completions.ChatCompletion;
+  inputMessages: ChatCompletionMessageParam[];
 }
 
 export interface TelemetryMetadata {
