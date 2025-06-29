@@ -1,7 +1,6 @@
-import { promises as fs } from "fs";
-import path from "path";
+import { HistoryEntry, TelemetryData } from "../types";
 
-export async function generateHTML(telemetryObj: any, filePath: string) {
+export async function generateHTML(telemetryObj: TelemetryData) {
   // Simple HTML template for demonstration
   const html = `<!DOCTYPE html>
 <html lang=\"en\">
@@ -56,9 +55,18 @@ export async function generateHTML(telemetryObj: any, filePath: string) {
         <ul>
           <li><b>Model:</b> ${telemetryObj.model}</li>
           <li><b>Max Iterations:</b> ${telemetryObj.maxIterations}</li>
-          <li><b>Started At:</b> ${telemetryObj.startedAt}</li>
-          <li><b>Finished At:</b> ${telemetryObj.finishedAt}</li>
-          <li><b>Total Duration (ms):</b> ${telemetryObj.totalDurationMs}</li>
+          <li><b>Started At:</b> ${
+            telemetryObj.iterations[0].timing.startTime
+          }</li>
+          <li><b>Finished At:</b> ${
+            telemetryObj.iterations[telemetryObj.iterations.length - 1].timing
+              .endTime
+          }</li>
+          <li><b>Total Duration (ms):</b> ${
+            telemetryObj.iterations[telemetryObj.iterations.length - 1].timing
+              .duration
+          }</li>
+         
         </ul>
       </div>
     </div>
@@ -69,7 +77,13 @@ export async function generateHTML(telemetryObj: any, filePath: string) {
       </div>
       <div class="output-col">
         <span><b>Final Prompt:</b> <button class="copy-btn" onclick="copyFinalPromptTemplate()">Copy</button></span>
-        <pre id="finalPromptTemplate">${telemetryObj.finalPromptTemplate}</pre>
+        <pre id="finalPromptTemplate">${
+          telemetryObj.iterations[telemetryObj.iterations.length - 1].output
+            .prompt.output
+        }</pre>
+        <div style="margin-top:0.7em; color:#00e0ff; font-size:1.08em;">
+         
+        </div>
       </div>
     </div>
     <div class="output-row">
@@ -79,7 +93,10 @@ export async function generateHTML(telemetryObj: any, filePath: string) {
       </div>
       <div class="output-col">
         <b>Final Output:</b>
-        <pre>${telemetryObj.finalOutput}</pre>
+        <pre>${
+          telemetryObj.iterations[telemetryObj.iterations.length - 1].output
+            .output.output
+        }</pre>
       </div>
     </div>
   </div>
@@ -89,7 +106,7 @@ export async function generateHTML(telemetryObj: any, filePath: string) {
     <ul class="iteration-list">
       ${(telemetryObj.iterations || [])
         .map(
-          (it: any) => `
+          (it: HistoryEntry) => `
         <li class="iteration-item">
           <div class="iteration-header">
             <span class="iteration-number">#${it.iteration}</span>
@@ -98,19 +115,19 @@ export async function generateHTML(telemetryObj: any, filePath: string) {
           <div class="iteration-fields">
             <div class="field-block">
               <div class="field-label">Prompt</div>
-              <pre>${it.prompt}</pre>
+              <pre>${it.input.prompt}</pre>
             </div>
             <div class="field-block">
               <div class="field-label">Output</div>
-              <pre>${it.output}</pre>
+              <pre>${it.input.output}</pre>
             </div>
             <div class="field-block">
               <div class="field-label">Difference</div>
-              <pre>${it.difference}</pre>
+              <pre>${it.output.difference.output}</pre>
             </div>
             <div class="field-block">
               <div class="field-label">Evolved Prompt</div>
-              <pre>${it.evolvedPrompt || ""}</pre>
+              <pre>${it.output.prompt.output}</pre>
             </div>
           </div>
         </li>
@@ -119,6 +136,7 @@ export async function generateHTML(telemetryObj: any, filePath: string) {
         .join("")}
     </ul>
   </div>
+  
 </body>
 <script>
 function copyFinalPromptTemplate() {
