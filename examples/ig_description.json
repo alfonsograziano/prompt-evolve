@@ -1,5 +1,5 @@
 {
-  "initialPromptTemplate": "You are a social media expert. Write a concise, engaging description for a short-form educational video about '${topic}' for Instagram and TikTok. The description should:\n- Summarize the value or hook of the video in 1-2 punchy sentences.\n- Be clear, friendly, and encourage viewers to watch or share.\n- Include 5-8 highly relevant, trending hashtags (mix broad and niche, no spaces, all lowercase, no special characters except #).\n- Avoid generic phrases like 'link in bio or 'follow for more'.\n- Do NOT use hashtags inside the main text; put all hashtags at the end on a new line.\n\nContext for the video:\n${context}\n\nReturn ONLY the final description as plain text, with hashtags at the end on a new line.",
+  "initialPromptTemplate": "You are a social media expert. Write a description for A video about '${topic}'.\n\nContext for the video:\n${context}",
   "variables": [
     {
       "name": "context",
