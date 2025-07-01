@@ -2,6 +2,7 @@ import { HistoryEntry, LLMResponse, VariableDef } from "../types";
 import { callLLM } from "./index";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { OpenAI } from "openai";
+import { lengthComparison } from "../metrics/length";
 
 /* Clip long strings and mark truncation */
 const TRIM = (txt: string, max = 2_000) =>
@@ -71,7 +72,7 @@ Think step-by-step *silently*; never reveal chain-of-thought.
 3. Works for *any* valid variable values.  
 4. Provides helpful structural scaffolding (headings, bullets…).  
 5. **Final answer = the new template only** (no fences / JSON / prose).  
-6. Append an **“### Example”** block that:
+6. Append an **"### Example"** block that:
    • Lists the *current* variable values.  
    • Shows the *Ideal Output* verbatim as the sample response.  
 
@@ -98,11 +99,11 @@ Task: Fix the template.`,
 Write a **formal** introduction on **\${topic}** in ≤120 words.
 
 ### Structure  
-1. Level-2 markdown header “Introduction”  
+1. Level-2 markdown header "Introduction"  
 2. One concise paragraph
 
 ### Example  
-\${topic} = “Solar Power”  
+\${topic} = "Solar Power"  
 
 **Response (sample)**  
 ## Introduction  
@@ -152,7 +153,7 @@ Our product delivers…`,
         role: "assistant",
         content: `Evolved prompt (v${h.iteration + 1}):\n${TRIM(
           h.output.prompt.output,
-          300
+          500
         )}`,
       });
     });
@@ -161,9 +162,9 @@ Our product delivers…`,
     const variableDocs = variables
       .map(
         (v) =>
-          `• **${v.name}** — ${v.description}\n   ↳ e.g. “${v.example
+          `• **${v.name}** — ${v.description}\n   ↳ e.g. "${v.example
             .replace(/\n/g, " ")
-            .slice(0, 500)}”`
+            .slice(0, 500)}"`
       )
       .join("\n");
 
@@ -172,6 +173,17 @@ Our product delivers…`,
       .join("\n");
 
     /* 5. USER TASK — LIVE CASE */
+    // Compute length comparison
+    const lengthInfo = lengthComparison(currentOutput, idealOutput);
+    let lengthSummary = "";
+    if (lengthInfo.relation === "equal") {
+      lengthSummary += `Current output is the same length as the ideal output (${
+        currentOutput.split(/\s+/).length
+      } words).`;
+    } else {
+      lengthSummary += `Current output is ${lengthInfo.relation} than the ideal output by ${lengthInfo.difference} words (${lengthInfo.differenceInChars} chars). Generate the new template so that the output is the same length as the ideal output.`;
+    }
+
     msgs.push({
       role: "user",
       content: `
@@ -180,6 +192,9 @@ ${currentPrompt}
 
 ### Variables (reference)
 ${variableDocs}
+
+### Length Comparison
+${lengthSummary}
 
 ### Variable Values to Use in Example
 ${variableValues}
