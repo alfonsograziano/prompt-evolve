@@ -5,7 +5,9 @@
   "scripts": {
     "start": "tsx --env-file .env src/index.ts",
     "run-from-examples": "tsx --env-file .env src/run-from-examples.ts",
-    "run-from-file": "tsx --env-file .env src/run-from-file.ts"
+    "run-from-file": "tsx --env-file .env src/run-from-file.ts",
+    "run-reporter": "tsx --env-file .env src/run-reporter.ts",
+    "test": "vitest"
   },
   "author": "Alfonso Graziano",
   "license": "MIT",
@@ -13,9 +15,11 @@
   "devDependencies": {
     "@types/node": "^24.0.4",
     "tsx": "^4.20.3",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
+    "diff": "^8.0.2",
     "openai": "^5.8.1",
     "zod": "^3.25.67"
   }
