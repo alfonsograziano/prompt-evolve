@@ -45,8 +45,11 @@ export async function promptEvolve({
       `  [Iteration 0] LLM (generating initial output): ${initialOutputDuration}ms`
     );
     currentOutput = output;
+  } else {
+    currentOutput = initialOutput;
   }
 
+  // Main evolution loop
   for (let i = 0; i < maxIterations; i++) {
     const startTime = Date.now();
     console.log(`\n[Iteration ${i + 1}]`);
